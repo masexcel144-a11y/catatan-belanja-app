@@ -1,27 +1,38 @@
 import streamlit as st
 
-st.title("📝 Catatan Belanja")
+st.title("📝 Catatan Belanja dengan Total Harga")
 
-# Gunakan session_state agar data tetap tersimpan selama sesi aktif
+# Gunakan session_state agar data tersimpan selama sesi aktif
 if "belanja" not in st.session_state:
-    st.session_state.belanja = []
+    st.session_state.belanja = []  # Menyimpan list belanja
 
-# Form input
+# Form untuk menambah barang
 with st.form("tambah_barang", clear_on_submit=True):
     nama = st.text_input("Nama Barang")
-    jumlah = st.text_input("Jumlah")
-    submitted = st.form_submit_button("Tambah")
-    if submitted and nama and jumlah:
-        st.session_state.belanja.append(f"{nama} - {jumlah}")
+    jumlah = st.number_input("Jumlah", min_value=1, step=1)
+    harga_satuan = st.number_input("Harga per Item (Rp)", min_value=0, step=100)
+    submitted = st.form_submit_button("Tambah Barang")
+
+    if submitted and nama and harga_satuan > 0:
+        total_item = jumlah * harga_satuan
+        st.session_state.belanja.append({
+            "nama": nama,
+            "jumlah": jumlah,
+            "harga_satuan": harga_satuan,
+            "total_item": total_item
+        })
 
 # Tombol hapus semua
-if st.button("Hapus Semua"):
+if st.button("🧹 Hapus Semua"):
     st.session_state.belanja.clear()
 
-# Tampilkan riwayat
-st.subheader("🧾 Riwayat Belanja")
+# Tampilkan tabel belanja
+st.subheader("🧾 Daftar Belanja")
 if st.session_state.belanja:
-    for item in st.session_state.belanja:
-        st.write("- ", item)
+    st.table(st.session_state.belanja)
+
+    # Hitung total semua belanja
+    total_semua = sum(item["total_item"] for item in st.session_state.belanja)
+    st.markdown(f"### 💰 **Total Belanja: Rp {total_semua:,.0f}**")
 else:
-    st.write("Belum ada catatan belanja.")
+    st.info("Belum ada barang yang ditambahkan.")
